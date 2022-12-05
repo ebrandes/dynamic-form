@@ -60,19 +60,13 @@ const DynamicForm = ({ fields, renderSubmit, onSubmit, ...props }: any) => {
             {fields.map((f: Field) => {
               return (
                 <Box mt={4} key={f.name}>
-                  <RenderFields
-                    type={f.type}
-                    name={f.name}
-                    label={f.label}
-                    options={f.options}
+                  <RenderFields {...f}
                   />
                 </Box>
               );
             })}
 
-            {renderSubmit}
-
-            {!!renderSubmit && (
+            {renderSubmit || (
               <Box mt={4}>
                 <Button
                   fullWidth
