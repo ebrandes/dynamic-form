@@ -1,11 +1,5 @@
 import { Box, Button, Container, Typography } from "@mui/material";
-import {
-  Form,
-  Formik,
-  FormikValues,
-  FormikHelpers,
-  useFormikContext,
-} from "formik";
+import { Form, Formik, FormikValues, FormikHelpers, useField } from "formik";
 import { useEffect, useState } from "react";
 import * as yup from "yup";
 import DynamicForm, {
@@ -19,39 +13,42 @@ function App() {
   const [fieldsSchema, setFieldSchema] = useState<Field[]>([
     {
       name: "name",
-      type: "only-letters",
+      type: "just-letters",
       label: "Nome",
-      yupValidation: yup.string().required(),
+      yupvalidation: yup.string().required("Custom MSG de erro"),
       value: "Eduardo Brandes",
-      maxLength: 2,
-      minLength: 1,
+      minLength: 2,
+      maxLength: 1,
     },
     {
       name: "age",
-      type: "only-numbers",
+      type: "just-numbers",
       label: "Idade",
-      yupValidation: yup.string().required(),
+      yupvalidation: yup.string().required("Padrão"),
       value: "",
     },
     {
       name: "email",
       type: "email",
       label: "Email",
-      yupValidation: yup.string().email("Email inválido").required(),
+      yupvalidation: yup
+        .string()
+        .email("Email inválido")
+        .required("Campo de email obrigatório"),
       value: "",
     },
     {
       name: "money",
-      type: "money",
+      type: "currency",
       label: "Valor",
-      yupValidation: yup.string().required(),
+      yupvalidation: yup.string().required(),
       value: "",
     },
     {
       name: "role",
       type: "select",
       label: "Roles",
-      yupValidation: yup.string().required(),
+      yupvalidation: yup.string().required(),
       value: "",
       options: [
         {
@@ -66,33 +63,33 @@ function App() {
     },
   ]);
 
-  const { setFieldValue, values } = useFormikContext() ?? {};
-
   useEffect(() => {
     const copy = [...fieldsSchema];
     const index = copy.findIndex((f) => f.name === "role");
     copy[index].value = "ADMIN";
     setFieldSchema(copy);
+    // eslint-disable-next-line
   }, []);
 
-  const RenderSubmit = () => (
-    <Box mt={4}>
-      <Button type="submit">Enviar Custom</Button>
-      <Button type="reset">Limpar</Button>
-      <Button
-        onClick={() => {
-          debugger;
-          console.log(values);
-          setFieldValue("name", "Brandeszord");
-        }}
-      >
-        Trocar nome
-      </Button>
-    </Box>
-  );
+  const RenderSubmit = () => {
+    // eslint-disable-next-line
+    const [field, meta, helpers] = useField("name");
+
+    return (
+      <Box mt={4}>
+        <Button type="submit">Enviar Custom</Button>
+        <Button type="reset">Limpar</Button>
+        <Button onClick={() => helpers.setValue("Andrielle Salvador")}>
+          Trocar nome para Andrielle Salvador
+        </Button>
+      </Box>
+    );
+  };
 
   return (
     <Container>
+      <Typography>EXEMPLO 1</Typography>
+
       <Box mb={4}>
         <DynamicForm
           fields={fieldsSchema}
@@ -107,7 +104,7 @@ function App() {
         />
       </Box>
 
-      <Typography>Form dinamico com Formik de base</Typography>
+      <Typography>EXEMPLO 2</Typography>
 
       <Box mt={5}>
         <Formik
@@ -123,7 +120,7 @@ function App() {
           {({ handleSubmit, isSubmitting }) => (
             <Form onSubmit={handleSubmit} noValidate>
               {fieldsSchema.map((field) => (
-                <Box mt={3}>
+                <Box mt={3} key={field.name}>
                   <RenderFields {...field} type={field.type} />
                 </Box>
               ))}

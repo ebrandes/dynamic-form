@@ -23,7 +23,7 @@ export interface Field {
   name: string;
   type: string;
   label: string;
-  yupValidation?: any;
+  yupvalidation?: any;
   value?: string;
   options?: Options[];
   minLength?: number;
@@ -32,7 +32,7 @@ export interface Field {
 
 export const parseYupValidation = (_fieldsSchema: Field[]) => {
   const validations = _fieldsSchema.reduce(
-    (obj, cur: any) => ({ ...obj, [cur.name]: cur.yupValidation }),
+    (obj, cur: any) => ({ ...obj, [cur.name]: cur.yupvalidation }),
     {}
   );
   return yup.object().shape(validations);
@@ -56,34 +56,35 @@ const DynamicForm = ({ fields, renderSubmit, onSubmit, ...props }: any) => {
     >
       {({ handleSubmit, isSubmitting }) => (
         <Form onSubmit={handleSubmit} noValidate>
-          {fields.map((f: Field) => {
-            return (
-              <Box mt={4} key={f.name}>
-                <RenderFields
-                  type={f.type}
-                  name={f.name}
-                  label={f.label}
-                  minLength={f.minLength}
-                  maxLength={f.maxLength}
-                  options={f.options}
-                />
-              </Box>
-            );
-          })}
-          {renderSubmit}
+          <>
+            {fields.map((f: Field) => {
+              return (
+                <Box mt={4} key={f.name}>
+                  <RenderFields
+                    type={f.type}
+                    name={f.name}
+                    label={f.label}
+                    options={f.options}
+                  />
+                </Box>
+              );
+            })}
 
-          {!renderSubmit && (
-            <Box mt={4}>
-              <Button
-                fullWidth
-                disabled={isSubmitting}
-                variant="contained"
-                type="submit"
-              >
-                Enviar
-              </Button>
-            </Box>
-          )}
+            {renderSubmit}
+
+            {!!renderSubmit && (
+              <Box mt={4}>
+                <Button
+                  fullWidth
+                  disabled={isSubmitting}
+                  variant="contained"
+                  type="submit"
+                >
+                  Enviar
+                </Button>
+              </Box>
+            )}
+          </>
         </Form>
       )}
     </Formik>
@@ -94,18 +95,19 @@ export const RenderFields = ({ type, ...props }: any) => {
   switch (type) {
     case "select":
       return <SelectField {...props} />;
-    case "only-numbers":
-      return <InputField onlyNumber {...props} />;
-    case "money":
-      return <InputField money {...props} />;
-    case "only-letters":
-      return <InputField onlyLetters {...props} />;
+    case "just-numbers":
+      return <InputField justnumbers="true" {...props} />;
+    case "currency":
+      return <InputField currency="true" {...props} />;
+    case "just-letters":
+      return <InputField justletters="true" {...props} />;
     default:
       return <InputField {...props} />;
   }
 };
 
 const SelectField = ({ label, name, ...props }: any) => {
+  // eslint-disable-next-line
   const [field, meta, helpers] = useField(name);
 
   return (
@@ -147,19 +149,19 @@ const SelectField = ({ label, name, ...props }: any) => {
 const InputField = ({ label, name, ...props }: any) => {
   const [field, meta, helpers] = useField(name);
 
-  const { money, onlyNumber, onlyLetters, minLength, maxLength } = props;
+  const { currency, justnumbers, justletters, minlength, maxlength } = props;
 
   return (
     <TextField
       {...field}
       {...props}
       onChange={(e) => {
-        if (onlyNumber) {
+        if (justnumbers) {
           e.target.value = e.target.value.replace(/\D/g, "");
-        } else if (money) {
+        } else if (currency) {
           e.target.value = String(parseCurrency(e.target.value));
           e.target.value = formatCurrency(parseFloat(e.target.value));
-        } else if (onlyLetters) {
+        } else if (justletters) {
           e.target.value = e.target.value.replace(/[0-9]/g, "");
         }
         field.onChange(e);
@@ -170,7 +172,7 @@ const InputField = ({ label, name, ...props }: any) => {
       placeholder={label}
       label={label}
       onBlur={(e) => {
-        if (money) {
+        if (currency) {
           e.target.value = String(parseCurrency(e.target.value));
           if (!parseFloat(e.target.value)) {
             helpers.setValue("");
@@ -179,12 +181,12 @@ const InputField = ({ label, name, ...props }: any) => {
         field.onBlur(e);
       }}
       inputProps={{
-        maxLength: maxLength ?? 999,
-        minLength: minLength ?? 0,
+        maxLength: maxlength ?? 999,
+        minLength: minlength ?? 0,
       }}
       InputProps={{
         startAdornment:
-          money && field.value ? (
+          currency && field.value ? (
             <span style={{ marginRight: "5px" }}>R$</span>
           ) : (
             ""
